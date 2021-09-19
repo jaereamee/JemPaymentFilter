@@ -45,3 +45,4 @@
 6. printing it back out on excel
    1. it's ok to overwrite. This is because we want the list to keep updating. Actually, don't overwrite, make a new file each time, with naming convention including the date.
       1. This is good for archival purposes
+7. The logic shouldn't even need to reach checkAgainstGF actually. once checkAgainstBank is 0, it appends alr.
