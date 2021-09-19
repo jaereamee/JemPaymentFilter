@@ -4,13 +4,15 @@
 //                      //
 //////////////////////////
 
-1. Print the Bank Transaction
+1. Run the "Jedatis-Sinopharm.exe"
+   
+2. Print the Bank Transaction
    1. Select all and copy
-   3. Open `bankStatements.xlsx` and use the "Raw" sheet
-   4. Paste Special -> Unformatted Text
-   5. You should see 1 column with many rows of entries
+   2. Open `bankStatements.xlsx` and use the "Raw" sheet
+   3. Paste Special -> Unformatted Text
+   4. You should see 1 column with many rows of entries
 
-2. Copy and paste ALL the Form 2 info into `form2Responses.xlsx` 
+3. Copy and paste ALL the Form 2 info into `form2Responses.xlsx` 
 
 
 Notes:
