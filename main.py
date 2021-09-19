@@ -95,16 +95,16 @@ def search_NRIC(GF, Bank):
         charnum = len(GF[NRIC_COLUMN_NAME][j]) # i kno how long they enter liao, incase clare dun check for length agn
             
         if charnum>9: print("Error: NRIC too long")
-        elif charnum==4: gf_nric = GF[NRIC_COLUMN_NAME][j]
-        
-        for bah in Bank.index:
-            # print(Bank.iloc[bah,0].find("hello"))
-            if Bank.iloc[bah,0].find(gf_nric) != -1:
-            # if gf_nric in Bank.iloc[bah,0]:
-                print("yes!!")
-                # print(gf_nric)
-                print(Bank.iloc[bah,0])
-            # else: print("nope")
+        elif charnum==4: 
+            gf_nric = GF[NRIC_COLUMN_NAME][j]
+            for bah in Bank.index:
+                # print(Bank.iloc[bah,0].find("hello"))
+                if Bank.iloc[bah,0].find(gf_nric) != -1:
+                # if gf_nric in Bank.iloc[bah,0]:
+                    print("yes!!")
+                    # print(gf_nric)
+                    print(Bank.iloc[bah,0])
+                # else: print("nope")
 
     return
 

@@ -21,3 +21,6 @@
       2. ok i can use `base.find(key)`. 
          1. I am getting false positives cos those nan values become blank!
             1. Try getting rid of the nan to blank replacer
+               1. no doesnt work
+            2. Its cos the searching bank records should be within the iterating thru googleform loop, if not it will keep
+      3. **Ok i have found how to do match by nric** 
