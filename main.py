@@ -79,12 +79,17 @@ def masterFilter(GF,Bank):
     """
 
     # compare the NRIC value
-    search_NRIC(GF, Bank)
+    nric_matches = search_NRIC(GF, Bank)
+    for i in nric_matches:
+        print(GF.loc[i,])
 
 
 
 def search_NRIC(GF, Bank):
     
+    # holder list for matched records
+    matches=[]
+
     # find the column containing NRIC
     for x in GF.columns.values:
         if NRIC_COLUMN_NAME in x: # make sure it's the NRIC 
@@ -95,18 +100,17 @@ def search_NRIC(GF, Bank):
         charnum = len(GF[NRIC_COLUMN_NAME][j]) # i kno how long they enter liao, incase clare dun check for length agn
             
         if charnum>9: print("Error: NRIC too long")
-        elif charnum==4: 
+        elif charnum>0: 
             gf_nric = GF[NRIC_COLUMN_NAME][j]
             for bah in Bank.index:
-                # print(Bank.iloc[bah,0].find("hello"))
-                if Bank.iloc[bah,0].find(gf_nric) != -1:
-                # if gf_nric in Bank.iloc[bah,0]:
-                    print("yes!!")
-                    # print(gf_nric)
-                    print(Bank.iloc[bah,0])
-                # else: print("nope")
 
-    return
+                if Bank.iloc[bah,0].find(gf_nric) != -1:
+                    print(Bank.iloc[bah,0])
+                    matches.append(j)
+
+                # else: print("nope")
+    print(matches)
+    return matches
 
 def search_Name():
     return

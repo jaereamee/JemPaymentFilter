@@ -23,4 +23,7 @@
             1. Try getting rid of the nan to blank replacer
                1. no doesnt work
             2. Its cos the searching bank records should be within the iterating thru googleform loop, if not it will keep
-      3. **Ok i have found how to do match by nric** 
+         2. **Ok i have found how to do match by nric, `.find` works** 
+      3. Now i collect all these gf records in another df. Need to send it back to the main. If they follow the NRIC format, there should not be any duplicates. It should only send back 1 record.
+         1. IF there's more than 1, make noise. Add to the "flag" column "multiple NRIC records 
+      4. Ok this function now will return the rows that matches were found.
