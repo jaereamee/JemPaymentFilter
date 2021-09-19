@@ -4,6 +4,7 @@ from datetime import datetime
 from openpyxl import Workbook, load_workbook #lib for managing excel https://openpyxl.readthedocs.io/en/stable/index.html 
 from openpyxl.utils import get_column_letter
 import pandas as pd
+from pandas.core.dtypes.missing import notnull
 
 cwd = os.getcwd()
 
@@ -77,23 +78,32 @@ def masterFilter(GF,Bank):
     print("matches: "+str(nric_matches))
     print("duplicate: "+str(nric_multi_payments))
 
-    printMatches(nric_matches,output_path)
+    # printMatches(nric_matches,output_path)
 
-    list_duplicates(GF,Bank,nric_multi_payments)
+    if bool(nric_multi_payments) != 0:
+        duplicates = list_duplicates(GF,Bank,nric_multi_payments,NRIC_COLUMN)
 
     # search the list again for remainder, or everthing if no match 
-    name_matches = search_Name(GF, Bank, nric_matches)
+    name_matches, name_multi_payments = search_Name(GF, Bank, nric_matches)    
+
+    all_matches = nric_matches.extend(name_matches)
+
+    # printMatches(name_matches,output_path)
     # check that there are no multiple match
-    if len(set(name_matches)) == len(name_matches):
+    if bool(name_multi_payments) != 0:
         printMatches(name_matches,output_path)
     # else:
         # check the gf itself if there are multiple entries with this name. This means the guy paid for other ppl 
+    
+    printMatches(all_matches,output_path)
+
 
 def search_NRIC(GF, Bank):
     
     # holder list for matched records
     matches=[]
     multi_payments=[]
+    search_is_definitive=1
 
     # find the column containing NRIC
     # for x in GF.columns.values:
@@ -150,6 +160,7 @@ def search_NRIC(GF, Bank):
 
 def search_Name(GF, Bank, nric_matches):
     matches = []
+    multi_payments=[]
     same_name = []
     
     for j in GF.index:
@@ -161,16 +172,30 @@ def search_Name(GF, Bank, nric_matches):
         for bah in Bank.index:
             if name_list.lower() in Bank.iloc[bah,0].lower():
                 # print(Bank.iloc[bah,0])
-                if j not in nric_matches: # check the list you alr have if you've matched before
-                    try: matches.append(j)
-                    except: matches.insert(j,0)
+                if j in nric_matches: # check the list you alr have if you've matched before
+                    try: multi_payments.append(j)
+                    except: multi_payments.insert(j,0)
+                try: matches.append(j)
+                except: matches.insert(j,0)
         
+    # remove duplicates from matches
+    holder=[]
+    i=0
+    for key in matches:
+        if matches[i] not in multi_payments:
+            try: 
+                holder.append(key)
+            except: 
+                holder.insert(key,0)
+        i+=1
+    matches=holder
+    
     # if there are no matches, return the entire searched list
     if len(matches) == 0:
         matches = nric_matches
 
     # print(matches)
-    return matches
+    return matches, multi_payments
 
 # THE SPLIT NAME LOGIC IS FLAWED!
 # def gf_SplitName(A):
@@ -183,10 +208,10 @@ def search_Name(GF, Bank, nric_matches):
 #             names.append(char_bucket)
 #         char_bucket.append(i)
 
-def list_duplicates(GF,Bank,nric_duplicates):
+def list_duplicates(GF,Bank,nric_duplicates,column):
     matches=[[],[]]
     for i in nric_duplicates:
-        gr_nric = GF[NRIC_COLUMN][i]
+        gr_nric = GF[column][i]
 
         for bah in Bank.index:
             if gr_nric.lower() in Bank.iloc[bah,0].lower():
@@ -197,7 +222,7 @@ def list_duplicates(GF,Bank,nric_duplicates):
                     matches[0].insert(i,0)
                     matches[1].insert(bah,0)
 
-    print(matches)
+    return matches
 
 def outputFileName():
     """Before the start of your printing, create a new output file that doesn't overwrite the existing (even those made in the same day)"""
