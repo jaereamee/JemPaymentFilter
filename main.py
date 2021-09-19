@@ -82,6 +82,11 @@ def masterFilter(GF,Bank):
 
     if bool(nric_multi_payments) != 0:
         duplicates = list_duplicates(GF,Bank,nric_multi_payments,NRIC_COLUMN)
+        # try to reduce multiples by checking names too
+        name_matches, name_multi_payments = search_Name(GF,Bank,duplicates[0])
+        all_matches = nric_matches.extend(name_matches)
+        if bool(name_multi_payments) != 0:
+            checkAgainstGF(GF,name_multi_payments)
 
     # search the list again for remainder, or everthing if no match 
     name_matches, name_multi_payments = search_Name(GF, Bank, nric_matches)    
@@ -116,6 +121,7 @@ def search_NRIC(GF, Bank):
             
         if charnum>0: 
             gf_nric = GF[NRIC_COLUMN][j]
+            name_list=GF[BANK_ACCOUNT_COLUMN][j]
             
             for bah in Bank.index:
                 # if Bank.iloc[bah,0].find(gf_nric) != -1:
@@ -131,7 +137,14 @@ def search_NRIC(GF, Bank):
                         matches.append(j)
                     except: 
                         matches.insert(j,0)
-                    # print("main: "+str(Bank.iloc[bah,0]))
+                # else: #cannot find in nric, check the name then. No 
+                #     if name_list.lower() in Bank.iloc[bah,0].lower():
+                #         # print(Bank.iloc[bah,0])
+                #         if j in matches: # check the list you alr have if you've matched before
+                #             try: multi_payments.append(j)
+                #             except: multi_payments.insert(j,0)
+                #         try: matches.append(j)
+                #         except: matches.insert(j,0)
                     
 
     # remove duplicates from matches
@@ -145,7 +158,6 @@ def search_NRIC(GF, Bank):
                 holder.insert(key,0)
         i+=1
     matches=holder
-
                 
     # if there are no matches, return the entire search list
     if len(matches) == 0:
@@ -163,7 +175,7 @@ def search_Name(GF, Bank, nric_matches):
     multi_payments=[]
     same_name = []
     
-    for j in GF.index:
+    for j in nric_matches:
 
         name_list=GF[BANK_ACCOUNT_COLUMN][j] # output should be a list of name segments
 
@@ -211,10 +223,10 @@ def search_Name(GF, Bank, nric_matches):
 def list_duplicates(GF,Bank,nric_duplicates,column):
     matches=[[],[]]
     for i in nric_duplicates:
-        gr_nric = GF[column][i]
+        gf_nric = GF[column][i]
 
         for bah in Bank.index:
-            if gr_nric.lower() in Bank.iloc[bah,0].lower():
+            if gf_nric.lower() in Bank.iloc[bah,0].lower():
                 try: 
                     matches[0].append(i)
                     matches[1].append(bah)
@@ -223,6 +235,23 @@ def list_duplicates(GF,Bank,nric_duplicates,column):
                     matches[1].insert(bah,0)
 
     return matches
+
+def checkAgainstGF(GF,multi_payments):
+    q=0
+    count=0
+    paid_for_others=[]
+
+    for r in multi_payments:
+        for q in GF.index:
+            if r.lower() in GF[BANK_ACCOUNT_COLUMN][q].lower():
+                count+=1
+            q+=1
+        if count>1:
+            paid_for_others.append(r)
+
+    print(paid_for_others)
+            
+
 
 def outputFileName():
     """Before the start of your printing, create a new output file that doesn't overwrite the existing (even those made in the same day)"""
