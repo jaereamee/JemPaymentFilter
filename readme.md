@@ -34,6 +34,7 @@
       1. **may not be the case. What if this guy put "george", but his bank only has chinese name. But at the same time there rly is another guy called "george". Then the system will think, oh ok i found him.** 
    3. Ok so we're only matching exact full name. Let's test.
       1. Hey! Just because you single out some in NRIC, you still missed out some that only match name. Don't just send the matched nrics only! Refactor the code. `search_Name` and `search_NRIC` 
+         1. nope revert. i create a "duplicate" list to handle multiples.
 
 5. If in the end you still end up with multiple, then check back on the googleform if there have been multiple of this name.
    1. if so add them to a NEW list. Called "paid for other ppl"

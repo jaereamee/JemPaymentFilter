@@ -74,33 +74,26 @@ def masterFilter(GF,Bank):
 
     # compare the NRIC value
     nric_matches,nric_multi_payments = search_NRIC(GF, Bank)
-    print(nric_matches[0])
-    # for i in nric_matches:
-        # print(GF[NRIC_COLUMN][i])
-    print("duplicate: "+str(nric_multi_payments[0]))
-    # for i in nric_multi_payments[0]:
-    #     print(GF[NRIC_COLUMN][i])
-    # for i in nric_multi_payments[1]:
-    #     print(Bank.iloc[i,0])
+    print("matches: "+str(nric_matches))
+    print("duplicate: "+str(nric_multi_payments))
 
+    printMatches(nric_matches,output_path)
 
-    # # if multiple records, match name
-    if len(set(nric_matches[0])) == len(nric_matches[0]):
-        printMatches(nric_matches,output_path)
-    else:
-        # search the list again for remainder, or everthing if no match 
-        name_matches = search_Name(GF, Bank, nric_matches)
-        # check that there are no multiple match
-        if len(set(name_matches)) == len(name_matches):
-            printMatches(name_matches,output_path)
-        # else:
-            # check the gf itself if there are multiple entries with this name. This means the guy paid for other ppl 
+    list_duplicates(GF,Bank,nric_multi_payments)
+
+    # search the list again for remainder, or everthing if no match 
+    name_matches = search_Name(GF, Bank, nric_matches)
+    # check that there are no multiple match
+    if len(set(name_matches)) == len(name_matches):
+        printMatches(name_matches,output_path)
+    # else:
+        # check the gf itself if there are multiple entries with this name. This means the guy paid for other ppl 
 
 def search_NRIC(GF, Bank):
     
     # holder list for matched records
-    matches=[[],[]]
-    multi_payments=[[],[]]
+    matches=[]
+    multi_payments=[]
 
     # find the column containing NRIC
     # for x in GF.columns.values:
@@ -118,34 +111,31 @@ def search_NRIC(GF, Bank):
                 # if Bank.iloc[bah,0].find(gf_nric) != -1:
                 if gf_nric.lower() in Bank.iloc[bah,0].lower():
                     # print(Bank.iloc[bah,0])
-                    # print(gf_nric)
-
-                    if j not in matches[0]: 
+                    # print(gf_nric)                     
+                    if j in matches:
                         try: 
-                            matches[0].append(j)
-                            matches[1].append(bah)
+                            multi_payments.append(j)
                         except: 
-                            matches[0].insert(j,0)
-                            matches[1].insert(bah,0)
-                        # print("main: "+str(Bank.iloc[bah,0]))
-                    else:
-                        try: 
-                            multi_payments[0].append(j)
-                            multi_payments[1].append(bah)
-                        except: 
-                            multi_payments[0].insert(j,0)
-                            multi_payments[1].insert(bah,0)
+                            multi_payments.insert(j,0)
+                    try: 
+                        matches.append(j)
+                    except: 
+                        matches.insert(j,0)
+                    # print("main: "+str(Bank.iloc[bah,0]))
+                    
 
     # remove duplicates from matches
-    # holder=[]
-    # multi_holder=[]
-    # for k in matches[0]:
-    #     if k not in multi_payments[0]:
-    #         holder.append(k)
-    #     else:
-    #         multi_holder[0].append(matches.iloc[k,0])
-    #         multi_holder[1].append(matches.iloc[k,1])
-    # matches=holder
+    holder=[]
+    i=0
+    for key in matches:
+        if matches[i] not in multi_payments:
+            try: 
+                holder.append(key)
+            except: 
+                holder.insert(key,0)
+        i+=1
+    matches=holder
+
                 
     # if there are no matches, return the entire search list
     if len(matches) == 0:
@@ -159,12 +149,11 @@ def search_NRIC(GF, Bank):
 
 
 def search_Name(GF, Bank, nric_matches):
-    matches = [0]
+    matches = []
     same_name = []
     
     for j in GF.index:
 
-        # try to match the whole name first
         name_list=GF[BANK_ACCOUNT_COLUMN][j] # output should be a list of name segments
 
         
@@ -193,6 +182,22 @@ def search_Name(GF, Bank, nric_matches):
 #         if i == " " or i == ",":
 #             names.append(char_bucket)
 #         char_bucket.append(i)
+
+def list_duplicates(GF,Bank,nric_duplicates):
+    matches=[[],[]]
+    for i in nric_duplicates:
+        gr_nric = GF[NRIC_COLUMN][i]
+
+        for bah in Bank.index:
+            if gr_nric.lower() in Bank.iloc[bah,0].lower():
+                try: 
+                    matches[0].append(i)
+                    matches[1].append(bah)
+                except: 
+                    matches[0].insert(i,0)
+                    matches[1].insert(bah,0)
+
+    print(matches)
 
 def outputFileName():
     """Before the start of your printing, create a new output file that doesn't overwrite the existing (even those made in the same day)"""
