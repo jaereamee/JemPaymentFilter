@@ -6,7 +6,8 @@ import pandas as pd
 
 cwd = os.getcwd()
 
-NRIC_COLUMN_NAME = "Last 4 Alphanumeric of NRIC"
+NRIC_COLUMN = "Last 4 Alphanumeric of NRIC"
+NAME_COLUMN = "Full Name as per NRIC/ Passport"
 
 def bank_GetData():
     
@@ -56,16 +57,6 @@ def bank_Searcher():
     """detects the format of a paynow/paylah and puts the relevant fields in a new column"""
 
     return
-
-def gf_SplitName(A):
-    """split the name into strings, separated by spaces and commas"""
-    count=0
-    name_components_bucket=[]
-    names=["john","tan"] #these are the names of the patients
-    for i in A:
-        if i == " " or i == ",":
-            names.append(char_bucket)
-        char_bucket.append(i)
             
 def masterFilter(GF,Bank):
     """
@@ -80,10 +71,17 @@ def masterFilter(GF,Bank):
 
     # compare the NRIC value
     nric_matches = search_NRIC(GF, Bank)
-    for i in nric_matches:
-        print(GF.loc[i,])
+    print(len(nric_matches))
+    # for i in nric_matches:
+    #     print(GF.iloc[i,])
+    #     print("\n")
 
-
+    # # if multiple records, match name
+    # if len(set(nric_matches)) == len(nric_matches):
+    #     gf_PrintMatches()
+    # else:
+    #     # search the list again for remainder
+    #     search_Name()
 
 def search_NRIC(GF, Bank):
     
@@ -91,31 +89,53 @@ def search_NRIC(GF, Bank):
     matches=[]
 
     # find the column containing NRIC
-    for x in GF.columns.values:
-        if NRIC_COLUMN_NAME in x: # make sure it's the NRIC 
-            NRIC_column=x
+    # for x in GF.columns.values:
+    #     if NRIC_COLUMN in x: # make sure it's the NRIC 
+    #            NRIC_Column = x
 
     for j in GF.index: # iterate throught the rows
 
-        charnum = len(GF[NRIC_COLUMN_NAME][j]) # i kno how long they enter liao, incase clare dun check for length agn
+        charnum = len(GF[NRIC_COLUMN][j]) # i kno how long they enter liao, incase clare dun check for length agn
             
-        if charnum>9: print("Error: NRIC too long")
+        if charnum>9: print("Error: NRIC/FIN/Passport too long")
         elif charnum>0: 
-            gf_nric = GF[NRIC_COLUMN_NAME][j]
+            gf_nric = GF[NRIC_COLUMN][j]
+            
             for bah in Bank.index:
-
                 if Bank.iloc[bah,0].find(gf_nric) != -1:
-                    print(Bank.iloc[bah,0])
+                    # print(Bank.iloc[bah,0])
                     matches.append(j)
+        
+        if len(matches) == 0:
+            matches = GF.index
 
-                # else: print("nope")
     print(matches)
     return matches
 
-def search_Name():
+
+def search_Name(GF, Bank):
+    matches = []
+    
+    for j in GF.index:
+        name_list=gf_SplitName(GF)
+        for i in name_list:
+            for bah in Bank.index:
+                if Bank.iloc[bah,0].find(name_list[NAME_COLUMN][i]) != -1:
+                    print(Bank.iloc[bah,0])
+                    matches.append(j)
     return
 
-def gf_SetData():
+def gf_SplitName(A):
+    """split the name into strings, separated by spaces and commas"""
+    count=0
+    name_components_bucket=[]
+    names=["john","tan"] #these are the names of the patients
+    for i in A:
+        if i == " " or i == ",":
+            names.append(char_bucket)
+        char_bucket.append(i)
+
+def gf_PrintMatches():
     return
 
 
