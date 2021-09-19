@@ -6,6 +6,8 @@ import pandas as pd
 
 cwd = os.getcwd()
 
+NRIC_COLUMN_NAME = "Last 4 Alphanumeric of NRIC"
+
 def bank_GetData():
     
     ## open the workbook, create if doesn't exist
@@ -15,12 +17,13 @@ def bank_GetData():
         ws1 = wb.active
         ws1.title = "Raw"
         wb.save(filename = BANK_PATH)
+        return 0
+    wb_panda = pd.read_excel(BANK_PATH,sheet_name="Raw",engine="openpyxl")
+    # print("bank:\n")
+    # print(wb_panda.head())
 
-    
-    
-    
     #The bank statement always has `Total Debit Count` at the end of the document, so you can scan until there
-    return
+    return wb_panda
 
 # i also need to read the info from google form
 def gf_GetData():
@@ -30,7 +33,6 @@ def gf_GetData():
     # if the workbook doesnt exist create it. Ensure formatting is correct as well
     wb=Workbook()
     if not os.path.isfile(GF_PATH): 
-        print("nth")
         ws1 = wb.active
         ws1.title = "Raw"
         wb.create_sheet(title="Paid")
@@ -42,8 +44,9 @@ def gf_GetData():
     
     # try again with pandas
     wb_panda = pd.read_excel(GF_PATH,sheet_name="Raw",engine="openpyxl")
-    # df_panda = wb_panda.parse("Raw")
-    print(wb_panda.head())
+
+    # print("gf:\n")
+    # print(wb_panda.head())
 
     return wb_panda
 
@@ -74,23 +77,31 @@ def masterFilter(GF,Bank):
     4. Still multiple, check if GF has multiple same name
     """
 
-    # for every nested list in the list...
-    for i in GF:
-        # compare the NRIC value
-        search_NRIC()
+    # compare the NRIC value
+    search_NRIC(GF, Bank)
 
 
-        
-            
-        
+
+def search_NRIC(GF, Bank):
     
-    
+    # find the column containing NRIC
+    for x in GF.columns.values:
+        if NRIC_COLUMN_NAME in x: # make sure it's the NRIC 
+            NRIC_column=x
 
+    for j in GF.index: # iterate throught the rows
+        # print(GF[NRIC_COLUMN_NAME])
+        # print(len(GF[NRIC_COLUMN_NAME]))
+        charnum = len(GF[NRIC_COLUMN_NAME][j])
+        print(charnum)
+        if charnum != 9:
+            if charnum < 9:
+                print("e")
+            else: print(GF[NRIC_COLUMN_NAME][j])
+    # print(charnum)
 
-def search_NRIC():
-    if charnum > 9:
-        return 0
     return
+
 def search_Name():
     return
 
@@ -120,5 +131,6 @@ if __name__ == "__main__":
     ##   Space for Testing   ##
     ###########################
     x = gf_GetData()
-    print(x.head)
+    y = bank_GetData()
+    masterFilter(x,y)
 
