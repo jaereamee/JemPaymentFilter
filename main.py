@@ -18,7 +18,7 @@ def bank_GetData():
         ws1.title = "Raw"
         wb.save(filename = BANK_PATH)
         return 0
-    wb_panda = pd.read_excel(BANK_PATH,sheet_name="Raw",engine="openpyxl")
+    wb_panda = pd.read_excel(BANK_PATH,sheet_name="Raw",engine="openpyxl",dtype=str)
     # print("bank:\n")
     # print(wb_panda.head())
 
@@ -43,7 +43,8 @@ def gf_GetData():
     # wb.save(filename=GF_PATH)
     
     # try again with pandas
-    wb_panda = pd.read_excel(GF_PATH,sheet_name="Raw",engine="openpyxl")
+    wb_panda = pd.read_excel(GF_PATH,sheet_name="Raw",engine="openpyxl", dtype=str)
+    wb_panda = wb_panda.fillna('') # incase i nid to replace the nan with a blank
 
     # print("gf:\n")
     # print(wb_panda.head())
@@ -90,15 +91,20 @@ def search_NRIC(GF, Bank):
             NRIC_column=x
 
     for j in GF.index: # iterate throught the rows
-        # print(GF[NRIC_COLUMN_NAME])
-        # print(len(GF[NRIC_COLUMN_NAME]))
-        charnum = len(GF[NRIC_COLUMN_NAME][j])
-        print(charnum)
-        if charnum != 9:
-            if charnum < 9:
-                print("e")
-            else: print(GF[NRIC_COLUMN_NAME][j])
-    # print(charnum)
+
+        charnum = len(GF[NRIC_COLUMN_NAME][j]) # i kno how long they enter liao, incase clare dun check for length agn
+            
+        if charnum>9: print("Error: NRIC too long")
+        elif charnum==4: gf_nric = GF[NRIC_COLUMN_NAME][j]
+        
+        for bah in Bank.index:
+            # print(Bank.iloc[bah,0].find("hello"))
+            if Bank.iloc[bah,0].find(gf_nric) != -1:
+            # if gf_nric in Bank.iloc[bah,0]:
+                print("yes!!")
+                # print(gf_nric)
+                print(Bank.iloc[bah,0])
+            # else: print("nope")
 
     return
 
