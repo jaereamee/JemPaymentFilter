@@ -26,35 +26,26 @@ def bank_GetData():
 def gf_GetData():
     """it will be multiple column, with the key based on the fields of the form. Make this dynamic? Since google forms produces the first row as a fixed title name anyway"""
     GF_PATH = cwd+"/form2Responses.xlsx"
-    # if not os.path.isfile(GF_PATH): # if the workbook doesnt exist create it
-    #     wb=Workbook()
-    #     ws1 = wb.active
-    #     ws1.title = "Raw"
-    #     ws2 = wb.create_sheet(title="Paid")
-    #     wb.save(filename = GF_PATH)
-    
-    # myworkbook = load_workbook(filename=GF_PATH)
-    # sheet_ranges = myworkbook["Raw"]
 
-    # # load into a multidimensional list
-    # i = 2 #because the first row is the title 
-    # j = 1 #the first column is the timestamp but we still want it.
-    # gf_list = [[],[]]
-    # for i in sheet_ranges.max_row: 
-    #     for j in sheet_ranges.max_column: # i wna group the elements by patient, so each element alr has all the details of that patient
-    #         try:
-    #             gf_list[i].append(sheet_ranges.cell(row=i, column=j).value)
-    #         except:
-    #             gf_list[i].append(None)
-    #         j+=1
+    # if the workbook doesnt exist create it. Ensure formatting is correct as well
+    wb=Workbook()
+    if not os.path.isfile(GF_PATH): 
+        print("nth")
+        ws1 = wb.active
+        ws1.title = "Raw"
+        wb.create_sheet(title="Paid")
+        wb.save(filename = GF_PATH)
+        print("Please input the data")
+        return 0
+    # wb.active.title="Raw"
+    # wb.save(filename=GF_PATH)
     
     # try again with pandas
-    wb_panda = pd.ExcelFile(GF_PATH)
-    df_panda = wb_panda.parse("Sheet1")
-    print(df_panda.head())
-            
+    wb_panda = pd.read_excel(GF_PATH,sheet_name="Raw",engine="openpyxl")
+    # df_panda = wb_panda.parse("Raw")
+    print(wb_panda.head())
 
-    return
+    return wb_panda
 
 # find the different formats of payment. PayNow has a format, Paylah, BankTransfer. If majority of the cases are paynow/paylah, then why not i automate that first. To do a bank transfer the patient must have emailed the clinic.
 def bank_Searcher():
@@ -103,6 +94,10 @@ def search_NRIC():
 def search_Name():
     return
 
+def gf_SetData():
+    return
+
+
 if __name__ == "__main__":
     # ## lets deal with dataframe because we dunnid to do arithmetic, but we wna edit them alot.
 
@@ -124,5 +119,6 @@ if __name__ == "__main__":
     ###########################
     ##   Space for Testing   ##
     ###########################
-    gf_GetData()
+    x = gf_GetData()
+    print(x.head)
 
