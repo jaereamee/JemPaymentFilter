@@ -26,4 +26,19 @@
          2. **Ok i have found how to do match by nric, `.find` works** 
       3. Now i collect all these gf records in another df. Need to send it back to the main. If they follow the NRIC format, there should not be any duplicates. It should only send back 1 record.
          1. IF there's more than 1, make noise. Add to the "flag" column "multiple NRIC records 
-      4. Ok this function now will return the rows that matches were found.
+      4. Ok this function now will return the rows that matches were found. If none found, just send back everything
+
+4. match name
+   1. try to match the whole name first
+   2. think abt it: even if you try to search each segment, how confident will you be that that is the correct person? If you only search "Tan" and one person comes out, then ok thats fine. But also you can search "Fvsdn" and none come out..? In that case then go to the next name segment and try to find. If have multiple, then add the next name segment and try to narrow down to 1 record.
+      1. **may not be the case. What if this guy put "george", but his bank only has chinese name. But at the same time there rly is another guy called "george". Then the system will think, oh ok i found him.** 
+   3. Ok so we're only matching exact full name. Let's test.
+      1. Hey! Just because you single out some in NRIC, you still missed out some that only match name. Don't just send the matched nrics only! Refactor the code. `search_Name` and `search_NRIC` 
+
+5. If in the end you still end up with multiple, then check back on the googleform if there have been multiple of this name.
+   1. if so add them to a NEW list. Called "paid for other ppl"
+   2. if not, just flag this guy out as paid too many times.
+
+6. printing it back out on excel
+   1. it's ok to overwrite. This is because we want the list to keep updating. Actually, don't overwrite, make a new file each time, with naming convention including the date.
+      1. This is good for archival purposes

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from openpyxl import Workbook, load_workbook #lib for managing excel https://openpyxl.readthedocs.io/en/stable/index.html 
 from openpyxl.utils import get_column_letter
@@ -7,7 +8,7 @@ import pandas as pd
 cwd = os.getcwd()
 
 NRIC_COLUMN = "Last 4 Alphanumeric of NRIC"
-NAME_COLUMN = "Full Name as per NRIC/ Passport"
+BANK_ACCOUNT_COLUMN = "Full Name as per NRIC/ Passport" # change to "Please enter Bank Account Holder's name" afterwards
 
 def bank_GetData():
     
@@ -26,9 +27,8 @@ def bank_GetData():
     #The bank statement always has `Total Debit Count` at the end of the document, so you can scan until there
     return wb_panda
 
-# i also need to read the info from google form
 def gf_GetData():
-    """it will be multiple column, with the key based on the fields of the form. Make this dynamic? Since google forms produces the first row as a fixed title name anyway"""
+    """Get the Google Form Responses. It will be multiple column, with the key based on the fields of the form. Make this dynamic? Since google forms produces the first row as a fixed title name anyway"""
     GF_PATH = cwd+"/form2Responses.xlsx"
 
     # if the workbook doesnt exist create it. Ensure formatting is correct as well
@@ -69,6 +69,9 @@ def masterFilter(GF,Bank):
     4. Still multiple, check if GF has multiple same name
     """
 
+    # set output file
+    output_path = outputFileName()
+
     # compare the NRIC value
     nric_matches = search_NRIC(GF, Bank)
     print(len(nric_matches))
@@ -77,11 +80,17 @@ def masterFilter(GF,Bank):
     #     print("\n")
 
     # # if multiple records, match name
-    # if len(set(nric_matches)) == len(nric_matches):
-    #     gf_PrintMatches()
-    # else:
-    #     # search the list again for remainder
-    #     search_Name()
+    if len(set(nric_matches)) == len(nric_matches):
+        printMatches(nric_matches,output_path)
+    else:
+        # search the list again for remainder, or everthing if no match 
+        name_matches = search_Name(GF, Bank, nric_matches)
+        # check that there are no multiple match
+        if len(set(name_matches)) == len(name_matches):
+            printMatches(name_matches,output_path)
+        else:
+            # check the gf itself if there are multiple entries with this name. This means the guy paid for other ppl 
+            None
 
 def search_NRIC(GF, Bank):
     
@@ -102,40 +111,77 @@ def search_NRIC(GF, Bank):
             gf_nric = GF[NRIC_COLUMN][j]
             
             for bah in Bank.index:
-                if Bank.iloc[bah,0].find(gf_nric) != -1:
+                # if Bank.iloc[bah,0].find(gf_nric) != -1:
+                if gf_nric.lower() in Bank.iloc[bah,0].lower():
                     # print(Bank.iloc[bah,0])
-                    matches.append(j)
+                    # print(gf_nric)
+                    try: matches.append(j)
+                    except: matches.insert(j,0)
+                
         
-        if len(matches) == 0:
-            matches = GF.index
+    # if there are no matches, return the entire search list
+    if len(matches) == 0:
+        # matches = GF.index ## I shouldn't do this, it outputs: "RangeIndex(start=0, stop=10, step=1)"
+        for q in GF.index:
+            print(q)
+            try: matches.append(q)
+            except: matches.insert(q,0)
 
     print(matches)
     return matches
 
 
-def search_Name(GF, Bank):
-    matches = []
+def search_Name(GF, Bank, nric_matches):
+    matches = [0]
+    same_name = []
     
     for j in GF.index:
-        name_list=gf_SplitName(GF)
-        for i in name_list:
-            for bah in Bank.index:
-                if Bank.iloc[bah,0].find(name_list[NAME_COLUMN][i]) != -1:
-                    print(Bank.iloc[bah,0])
-                    matches.append(j)
-    return
 
-def gf_SplitName(A):
-    """split the name into strings, separated by spaces and commas"""
-    count=0
-    name_components_bucket=[]
-    names=["john","tan"] #these are the names of the patients
-    for i in A:
-        if i == " " or i == ",":
-            names.append(char_bucket)
-        char_bucket.append(i)
+        # try to match the whole name first
+        name_list=GF[BANK_ACCOUNT_COLUMN][j] # output should be a list of name segments
 
-def gf_PrintMatches():
+        
+        # For every line in gf, search entire bank statement for name.
+        for bah in Bank.index:
+            if name_list.lower() in Bank.iloc[bah,0].lower():
+                print(Bank.iloc[bah,0])
+                if j not in nric_matches: # check the list you alr have if you've matched before
+                    try: matches.append(j)
+                    except: matches.insert(j,0)
+        
+    # if there are no matches, return the entire searched list
+    if len(matches) == 0:
+        matches = nric_matches
+
+    print(matches)
+    return matches
+
+# THE SPLIT NAME LOGIC IS FLAWED!
+# def gf_SplitName(A):
+#     """split the name into strings, separated by spaces and commas"""
+#     count=0
+#     name_components_bucket=[]
+#     names=["john","tan"] #these are the names of the patients
+#     for i in A:
+#         if i == " " or i == ",":
+#             names.append(char_bucket)
+#         char_bucket.append(i)
+
+def outputFileName():
+    """Before the start of your printing, create a new output file that doesn't overwrite the existing (even those made in the same day)"""
+    # check if the default name exists
+        #if so, then iterate on the increments until you find one that's free. Set the output as that
+    now = datetime.now().strftime("%Y%m%d")
+    output_file = now+"output"
+    OUTPUT_PATH = cwd+"/"+output_file+".xlsx"
+
+    return OUTPUT_PATH
+
+def printMatches(data,output_path):
+
+    # if the workbook doesnt exist create it. Ensure formatting is correct as well
+    output_path
+    wb=Workbook()
     return
 
 
@@ -162,5 +208,6 @@ if __name__ == "__main__":
     ###########################
     x = gf_GetData()
     y = bank_GetData()
-    masterFilter(x,y)
+    # masterFilter(x,y)
+    search_Name(x,y,search_NRIC(x,y))
 
