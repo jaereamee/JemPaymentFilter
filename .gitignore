@@ -16,6 +16,7 @@ lib64/
 parts/
 sdist/
 var/
+test/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -61,3 +62,4 @@ docs/_build/
 *.~lock*
 *.csv
 *.docx
+*.spec
