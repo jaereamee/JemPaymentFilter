@@ -63,3 +63,6 @@ docs/_build/
 *.csv
 *.docx
 *.spec
+
+# executables
+*.exe
