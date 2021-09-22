@@ -9,8 +9,54 @@ from pandas.core.dtypes.missing import notnull
 
 cwd = os.getcwd()
 
-NRIC_COLUMN = "Last 4 Alphanumeric of NRIC"
-BANK_ACCOUNT_COLUMN = "Full Name as per NRIC/ Passport" # change to "Please enter Bank Account Holder's name" afterwards
+NRIC_COLUMN = "Please enter your NRIC/ Passport"
+BANK_ACCOUNT_COLUMN = "Please enter Bank Account Holder's name" 
+
+#######################################
+# Bank Sheet Columns
+
+PAYNOW_COLUMN = "Transaction Description 2"
+AMOUNT_COLUMN = "Credit"
+
+def startMenu():
+
+    print("Please confirm the EXACT column names.")
+    print("Full NRIC Column: "+NRIC_COLUMN)
+    print("Bank Account Holder Name: "+BANK_ACCOUNT_COLUMN)
+    confirm = input("Is this correct? (Y/N)")
+    while True:
+        if confirm.lower() == "y":
+            smt
+            break
+        elif confirm.lower() == "n":
+            no
+            print("Which one needs to be changed?")
+            for 
+        else:
+            print("Please confirm the EXACT column names.")
+            print("Full NRIC Column: "+NRIC_COLUMN)
+            print("Bank Account Holder Name: "+BANK_ACCOUNT_COLUMN)
+
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
 
 def bank_GetData():
     
@@ -22,11 +68,10 @@ def bank_GetData():
         ws1.title = "Raw"
         wb.save(filename = BANK_PATH)
         return 0
-    wb_panda = pd.read_excel(BANK_PATH,sheet_name="Raw",engine="openpyxl",dtype=str)
-    # print("bank:\n")
-    # print(wb_panda.head())
+    
+    wb_panda = pd.read_excel(BANK_PATH,engine="openpyxl",skiprows=5,dtype=str)
+    wb_panda = wb_panda.fillna('')
 
-    #The bank statement always has `Total Debit Count` at the end of the document, so you can scan until there
     return wb_panda
 
 def gf_GetData():
@@ -53,12 +98,6 @@ def gf_GetData():
     # print(wb_panda.head())
 
     return wb_panda
-
-# find the different formats of payment. PayNow has a format, Paylah, BankTransfer. If majority of the cases are paynow/paylah, then why not i automate that first. To do a bank transfer the patient must have emailed the clinic.
-def bank_Searcher():
-    """detects the format of a paynow/paylah and puts the relevant fields in a new column"""
-
-    return
             
 def masterFilter(GF,Bank):
     """
@@ -83,53 +122,56 @@ def masterFilter(GF,Bank):
     paid_correctly=[]
     paid_wrong_amount=[]
 
-
-    for a in GF.index:
+    printProgressBar(0,len(GF.index),prefix = 'Progress:', suffix = 'Complete', length = 50)
+    for a in len(GF):
+        printProgressBar(a + 1, len(GF.index), prefix = 'Progress:', suffix = 'Complete', length = 50)
         gf_nric = GF[NRIC_COLUMN][a]
         name_list = GF[BANK_ACCOUNT_COLUMN][a]
         
         if search_NRIC(gf_nric,Bank):
             print(str(GF[BANK_ACCOUNT_COLUMN][a])+" found by nric")
             bank_duplicate, bt = checkAgainstBank(name_list,Bank)
-            bank_transaction.append(bt)
+            if bt>-1:
+                bank_transaction.append(bt)
             if bank_duplicate:
-                print(str(GF[BANK_ACCOUNT_COLUMN][a])+"Paid too many times")
+                print(str(GF[BANK_ACCOUNT_COLUMN][a])+" - Paid too many times")
                 paid_too_many_times.append(a)
             else:
                 matches.append(a)
         elif search_Name(name_list,Bank):
             print(str(GF[BANK_ACCOUNT_COLUMN][a])+" found by name")
-            bank_duplicate, bt = checkAgainstBank(GF[BANK_ACCOUNT_COLUMN][a],Bank)
-            bank_transaction.append(bt)
+            bank_duplicate, bt = checkAgainstBank(name_list,Bank)
+            if bt>-1:
+                bank_transaction.append(bt)
             if bank_duplicate:
                 if checkAgainstGF(GF,a):
-                    print(str(GF[BANK_ACCOUNT_COLUMN][a])+"Paid for others")
+                    print(str(GF[BANK_ACCOUNT_COLUMN][a])+" - Paid for others")
                     paid_for_others.append(a)
                 else:
-                    print(str(GF[BANK_ACCOUNT_COLUMN][a])+"Paid too many times")
+                    print(str(GF[BANK_ACCOUNT_COLUMN][a])+" - Paid too many times")
                     paid_too_many_times.append(a)
             else:
                 matches.append(a)
         else: 
-            print(str(GF[BANK_ACCOUNT_COLUMN][a])+"No payment found")
+            print(str(GF[BANK_ACCOUNT_COLUMN][a])+" - No payment found")
             no_payment_found.append(a)
         a+=1
     print("matches: "+str(matches))
     ok=0
+    
     for b in matches:
-        for c in range(6):
-            try: (Bank.iloc[bank_transaction[b]+c,0])
-            except: 
-                print("continue")
-                break
-            if "SGD 98" in Bank.iloc[bank_transaction[b]+c,0]:
-                    print(str(GF[BANK_ACCOUNT_COLUMN][b])+" OK")
-                    paid_correctly.append(b)
-                    ok = 1
-                    break
-        if ok==0:
-            print(str(GF[BANK_ACCOUNT_COLUMN][b])+" paid wrong amount")
-            paid_wrong_amount.append(b)
+        # if (Bank.iloc[bank_transaction[b],PAYNOW_COLUMN]) == NULL:
+        #     print(str(Bank.iloc[bank_transaction[b],0]) + " continue")
+        print(str(Bank[AMOUNT_COLUMN][bank_transaction[b]]))
+        
+        if "98" in Bank[AMOUNT_COLUMN][bank_transaction[b]]:
+            print(str(GF[BANK_ACCOUNT_COLUMN][b])+" OK")
+            paid_correctly.append(b)
+            ok = 1
+            break
+    if ok==0:
+        print(str(GF[BANK_ACCOUNT_COLUMN][b])+" paid wrong amount")
+        paid_wrong_amount.append(b)
             
             # else: print(str(GF[BANK_ACCOUNT_COLUMN][b])+"Paid wrong amount")
             # else: print(str(GF[BANK_ACCOUNT_COLUMN][b])+"Technical Error: can't find amount paid")
@@ -142,8 +184,8 @@ def search_NRIC(gf_nric, Bank):
     
     charnum=len(gf_nric)
     if charnum>0:
-        for bah in Bank.index:
-            if gf_nric.lower() in Bank.iloc[bah,0].lower():
+        for bah in len(Bank[PAYNOW_COLUMN]):
+            if gf_nric.lower() in Bank[PAYNOW_COLUMN][bah].lower(): # if it matches any down the paynow column of the bank statements, return true
                 return 1
         else:
             return 0
@@ -151,8 +193,8 @@ def search_NRIC(gf_nric, Bank):
 
 def search_Name(name_list, Bank):
     
-    for bah in Bank.index: 
-        if name_list.lower() in Bank.iloc[bah,0].lower():
+    for bah in len(Bank[PAYNOW_COLUMN]): 
+        if name_list.lower() in Bank[PAYNOW_COLUMN][bah].lower():
             return 1
     else:
         return 0
@@ -161,22 +203,24 @@ def checkAgainstBank(name_list,Bank):
     count=0
     address=999
 
-    for bah in Bank.index:
-        if name_list.lower() in Bank.iloc[bah,0].lower():
+    for bah in len(Bank[PAYNOW_COLUMN]):
+        if name_list.lower() in Bank[PAYNOW_COLUMN][bah].lower():
             count+=1
             if count==1:
                 address=bah
     if count>1:
-        return 1
-    else:
+        return 1,-1
+    elif count==1:
         return 0,address
+    else:
+        return 0,0 # no record at all, which is impossible
 
 def checkAgainstGF(GF,r):
     q=0
     count=0
 
     print(GF[BANK_ACCOUNT_COLUMN][r].lower())
-    for q in GF.index:
+    for q in len(GF):
         if GF[BANK_ACCOUNT_COLUMN][r].lower() in GF[BANK_ACCOUNT_COLUMN][q].lower():
             count+=1
         q+=1
@@ -185,6 +229,9 @@ def checkAgainstGF(GF,r):
     else:
         return 0
             
+def ignoreCompleted(resultz,mylist):
+    for d in len(resultz):
+        if mylist[d] in resultz
 
 
 def outputFileName():
@@ -221,18 +268,24 @@ def printMatches(GF,data,sheet,output_path):
     for i in data:
         mylist.append(GF.loc[i])
 
-    df = pd.DataFrame(mylist,columns=GF.columns)
-    
-
-    # df = pd.DataFrame(mylist)
-    # print(df.head())
-
     # # if the workbook doesnt exist create it. Ensure formatting is correct as well
     wb=load_workbook(output_path)
     # ws = wb[sheet]
     writer=pd.ExcelWriter(output_path, engine='openpyxl')
     writer.book = wb
 
+    #  check for duplicates..
+    compares = pd.read_excel(output_path, 'Email Sent',dtype=str)
+    compares = compares.fillna('')
+
+    for j in len(df):
+        if mylist[NRIC_COLUMN][j] not in compares[NRIC_COLUMN]:
+            df2 
+
+    
+    df = pd.DataFrame(mylist,columns=GF.columns) # new dataframe tohold the list
+        
+    # finally write to the excel
     writer.sheets = dict((ws.title, ws) for ws in writer.book.worksheets)
     df.to_excel(writer,sheet)
     writer.save()
@@ -241,37 +294,23 @@ def printMatches(GF,data,sheet,output_path):
 
 
 if __name__ == "__main__":
-    # ## lets deal with dataframe because we dunnid to do arithmetic, but we wna edit them alot.
-
-    # # #also read the fields in the googleform. Search the first row for headers.
-    # myGF = gf_GetData()
-    # # first i need to get all the rows in bankStatements.xlsx and put it in a big list
-    # myBank = bank_GetData()
-
-    # #identify a paynow/paylah transaction in the long array, and pull the NRIC (if available) and each segment of their name.
     
-
-    
-    # masterFilter(myGF,myBank)
-
-    # ## if at the end of this you still have multiple names, this means multiple payment. Put them in another sheet called "Multiple Payment"
-
-    # ## the rest of them put it in the "Not Paid" sheet
-
-    ###########################
-    ##   Space for Testing   ##
-    ###########################
-    x = gf_GetData()
-    y = bank_GetData()
-    paid_too_many_times, paid_for_others, no_payment_found, paid_correctly, paid_wrong_amount = masterFilter(x,y)
-    # search_Name(x,y,search_NRIC(x,y))
+    # x = gf_GetData()
+    # y = bank_GetData()
+    # paid_too_many_times, paid_for_others, no_payment_found, paid_correctly, paid_wrong_amount = masterFilter(x,y)
+    # # search_Name(x,y,search_NRIC(x,y))
    
-    mypath = outputFileName()
-    print(mypath)
+    # mypath = outputFileName()
+    # print(mypath)
 
-    printMatches(x,paid_correctly,"Paid Correctly",mypath)
-    printMatches(x,paid_too_many_times,"Paid too many times",mypath)
-    printMatches(x,paid_for_others,"Paid for others",mypath)
-    printMatches(x,no_payment_found,"No payment found",mypath)
-    printMatches(x,paid_wrong_amount,"Paid wrong amount",mypath)
+    # printMatches(x,paid_correctly,"Paid Correctly",mypath)
+    # printMatches(x,paid_too_many_times,"Paid too many times",mypath)
+    # printMatches(x,paid_for_others,"Paid for others",mypath)
+    # printMatches(x,no_payment_found,"No payment found",mypath)
+    # printMatches(x,paid_wrong_amount,"Paid wrong amount",mypath)
+
+    ##########################################################################333
+
+    he = bank_GetData()
+    print(he.head())
 
