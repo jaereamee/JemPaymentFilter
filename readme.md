@@ -1,3 +1,5 @@
+# Notes
+
 1. first she put the relevant data into the correct sheets
 2. get data from gf and bank into a nested list (pandas df). Row-major.
    1. try again with pandas
